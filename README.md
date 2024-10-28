@@ -20,6 +20,6 @@
 </h2>
 <h2>CAN CAUSE ERRORS WITH WEB-SERVERS. BE CAREFUL!</h2>
 
-#script-gui-postgres
-Script for college classes.
+# script-gui-postgres
+<br>Script for college classes.</br>
 
