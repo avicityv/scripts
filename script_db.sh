@@ -1,9 +1,6 @@
 export PGPASSWORD='postgres';
-psql -U postgres
-CREATE DATABASE mydatabase;
-\q
-psql -U postgres -d mydatabase
-CREATE TABLE Товары (
+psql -U postgres -c "CREATE DATABASE mydatabase"
+psql -U postgres -d mydatabase -c "CREATE TABLE Товары (
     ID_товара SERIAL PRIMARY KEY,
     Название_товара VARCHAR(255),
     Количество_на_складе INT,
@@ -82,5 +79,5 @@ CREATE TABLE Оплата (
     Дата_оплаты DATE,
     Сумма NUMERIC,
     ID_клиента INT REFERENCES Клиент(ID_клиента)
-);
-\d
+);"
+psql -U postgres -d mydatabase -c "\d"
