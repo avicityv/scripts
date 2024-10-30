@@ -1,177 +1,122 @@
-import tkinter as tk
+from tkinter import *
 import psycopg2
 
-class EntryField:
-    """Поле ввода с меткой для отображения данных из базы данных."""
-    def __init__(self, form, label_text, width=50):
-        self.label = tk.Label(form, text=label_text)
-        self.entry = tk.Entry(form, width=width)
-        self.label.pack()
-        self.entry.pack()
+class Form:
+    def __init__(self, form_name, geom):
+        self.root = Tk()
+        self.root.title(form_name)
+        self.root.geometry(geom)
+        self.width = 50
 
-    def set_value(self, value):
-        self.entry.delete(0, tk.END)
-        self.entry.insert(0, value)
+class Entry_1:
+    def __init__(self, form, label, data):
+        self.lab_1 = Label(form.root, text=label)
+        self.ent_1 = Entry(form.root, width=form.width + 16)
+        self.lab_1.pack()
+        self.ent_1.pack()
+        self.ent_1.insert(0, data)
+    
+    def set_1(self, text):
+        self.ent_1.delete(0, END)
+        self.ent_1.insert(0, text)
+    
+    def get(self):
+        return self.ent_1.get()
 
-    def get_value(self):
-        return self.entry.get()
+class Button_1:
+    def __init__(self, form, text_b, width_b, height_b, command_b):
+        self.b1 = Button(form.root, text=text_b, width=width_b, height=height_b)
+        self.b1.config(command=command_b)
+        self.b1.pack()
 
-    def clear(self):
-        self.entry.delete(0, tk.END)
-
-
-class DatabaseApp:
+class Scene_1:
     def __init__(self):
-        # Настройка основного окна
-        self.root = tk.Tk()
-        self.root.title("Database GUI")
-        self.root.geometry("600x600")
+        self.n = 0
+        self.selected_table = 'поставщики'  # Начальная таблица
+        self.setup_ui()
+        self.load_data()
+        self.update_entries()
 
-        # Подключение к базе данных
-        self.db_config = {
-            "database": "trading_firm",
-            "user": "postgres",
-            "password": "postgres",
-            "host": "127.0.0.1",
-            "port": "5432"
-        }
+    def setup_ui(self):
+        self.form1 = Form('Форма для работы с таблицами', '500x500+400+200')
+        
+        # Выбор таблицы
+        self.table_select = Entry_1(self.form1, 'Выберите таблицу:', self.selected_table)
+        self.switch_table_button = Button_1(self.form1, "Переключить таблицу", 50, 2, self.switch_table)
+        
+        # Поля для данных (инициализация пустыми значениями)
+        self.entries = [Entry_1(self.form1, f'Поле {i+1}:', '') for i in range(6)]
+        
+        # Кнопки для управления записями
+        self.but_1 = Button_1(self.form1, "Следующая запись", 50, 2, self.next_record)
+        self.but_2 = Button_1(self.form1, "Предыдущая запись", 50, 2, self.previous_record)
+        self.but_3 = Button_1(self.form1, "Добавить запись", 50, 2, self.add_record)
+        self.but_4 = Button_1(self.form1, "Удалить запись", 50, 2, self.delete_record)
 
-        # Данные о таблицах
-        self.tables = {
-            "customers": ["customer_id", "name", "email", "phone", "address"],
-            "employees": ["employee_id", "name", "position", "hire_date", "salary"],
-            "suppliers": ["supplier_id", "name", "contact_name", "phone", "address"],
-            "categories": ["category_id", "name"],
-            "products": ["product_id", "name", "description", "price", "stock_quantity", "category_id"],
-            "orders": ["order_id", "customer_id", "order_date", "total_amount"],
-            "order_items": ["order_item_id", "order_id", "product_id", "quantity", "price"],
-            "payments": ["payment_id", "order_id", "payment_date", "amount", "payment_method"]
-        }
+        self.form1.root.mainloop()
 
-        # Переменные для хранения текущего состояния
-        self.current_table = "customers"
-        self.current_row_index = 0
-        self.rows = []
+    def load_data(self):
+        # Загрузка данных из выбранной таблицы
+        conn = psycopg2.connect(database="torg_firm", user="postgres", password="postgres", host="127.0.0.1", port="5432")
+        cur = conn.cursor()
+        cur.execute(f'SELECT * FROM "{self.selected_table}";')
+        self.rows = cur.fetchall()
+        conn.close()
+        if not self.rows:
+            self.rows = [[0] * len(self.entries)]
+        
+        self.n = 0  # Сброс индекса для первой записи
 
-        # Интерфейс
-        self.create_widgets()
-        self.load_table_data()
-
-        self.root.mainloop()
-
-    def create_widgets(self):
-        """Создание интерфейса"""
-        # Меню для выбора таблицы
-        self.table_var = tk.StringVar(self.root)
-        self.table_var.set(self.current_table)
-        self.table_menu = tk.OptionMenu(self.root, self.table_var, *self.tables.keys(), command=self.on_table_change)
-        self.table_menu.pack()
-
-        # Поля ввода
-        self.entry_fields = []
-        self.update_entry_fields()
-
-        # Кнопки управления
-        self.btn_next = tk.Button(self.root, text="Следующая запись", command=self.next_record)
-        self.btn_next.pack()
-
-        self.btn_prev = tk.Button(self.root, text="Предыдущая запись", command=self.previous_record)
-        self.btn_prev.pack()
-
-        self.btn_add = tk.Button(self.root, text="Добавить запись", command=self.add_record)
-        self.btn_add.pack()
-
-        self.btn_delete = tk.Button(self.root, text="Удалить запись", command=self.delete_record)
-        self.btn_delete.pack()
-
-    def update_entry_fields(self):
-        """Обновление полей ввода при смене таблицы"""
-        # Очистка старых полей
-        for field in self.entry_fields:
-            field.label.destroy()
-            field.entry.destroy()
-        self.entry_fields = []
-
-        # Создание новых полей ввода на основе выбранной таблицы
-        for column in self.tables[self.current_table]:
-            entry_field = EntryField(self.root, column + ":")
-            self.entry_fields.append(entry_field)
-
-    def on_table_change(self, selected_table):
-        """Смена таблицы и обновление данных"""
-        self.current_table = selected_table
-        self.current_row_index = 0
-        self.update_entry_fields()
-        self.load_table_data()
-
-    def load_table_data(self):
-        """Загрузка данных из выбранной таблицы"""
-        try:
-            conn = psycopg2.connect(**self.db_config)
-            cursor = conn.cursor()
-            cursor.execute(f"SELECT * FROM {self.current_table}")
-            self.rows = cursor.fetchall()
-            conn.close()
-            self.current_row_index = 0
-            self.update_entry_values()
-        except Exception as e:
-            print("Ошибка при загрузке данных:", e)
-
-    def update_entry_values(self):
-        """Обновление значений в полях ввода на основе текущей записи"""
-        if self.rows:
-            current_row = self.rows[self.current_row_index]
-            for entry_field, value in zip(self.entry_fields, current_row):
-                entry_field.set_value(value)
-        else:
-            # Очистка полей, если данных нет
-            for entry_field in self.entry_fields:
-                entry_field.clear()
+    def switch_table(self):
+        # Переключение таблицы
+        self.selected_table = self.table_select.get()
+        self.load_data()
+        self.update_entries()
 
     def next_record(self):
-        """Переход к следующей записи"""
-        if self.rows and self.current_row_index < len(self.rows) - 1:
-            self.current_row_index += 1
-            self.update_entry_values()
+        if self.n < len(self.rows) - 1:
+            self.n += 1
+            self.update_entries()
 
     def previous_record(self):
-        """Переход к предыдущей записи"""
-        if self.rows and self.current_row_index > 0:
-            self.current_row_index -= 1
-            self.update_entry_values()
+        if self.n > 0:
+            self.n -= 1
+            self.update_entries()
+
+    def update_entries(self):
+        # Обновление полей данных на основе текущей записи
+        for i, entry in enumerate(self.entries):
+            if i < len(self.rows[self.n]):
+                entry.set_1(self.rows[self.n][i])
+            else:
+                entry.set_1('')  # Пустое поле, если данных меньше
 
     def add_record(self):
-        """Добавление новой записи в таблицу"""
-        new_data = [entry_field.get_value() for entry_field in self.entry_fields]
+        # Добавление новой записи в текущую таблицу
+        new_data = tuple(entry.get() for entry in self.entries)
+        
+        conn = psycopg2.connect(database="trading_firm", user="postgres", password="1", host="127.0.0.1", port="5432")
+        cur = conn.cursor()
         placeholders = ', '.join(['%s'] * len(new_data))
-        query = f"INSERT INTO {self.current_table} VALUES (DEFAULT, {placeholders})"
-
-        try:
-            conn = psycopg2.connect(**self.db_config)
-            cursor = conn.cursor()
-            cursor.execute(query, new_data)
-            conn.commit()
-            conn.close()
-            self.load_table_data()  # Перезагрузка данных после добавления
-        except Exception as e:
-            print("Ошибка при добавлении записи:", e)
+        cur.execute(f'INSERT INTO "{self.selected_table}" VALUES ({placeholders});', new_data)
+        conn.commit()
+        cur.close()
+        conn.close()
+        self.load_data()  # Обновление данных
+        self.update_entries()
 
     def delete_record(self):
-        """Удаление текущей записи из таблицы"""
-        if not self.rows:
-            return  # Нет данных для удаления
+        # Удаление текущей записи из таблицы
+        id_to_delete = self.entries[0].get()  # Предполагаем, что первый entry — это ID
+        
+         conn = psycopg2.connect(database="trading_firm", user="postgres", password="1", host="127.0.0.1", port="5432")
+        cur = conn.cursor()
+        cur.execute(f'DELETE FROM "{self.selected_table}" WHERE id=%s;', (id_to_delete,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        self.load_data()  # Обновление данных
+        self.update_entries()
 
-        record_id = self.rows[self.current_row_index][0]
-        primary_column = self.tables[self.current_table][0]
-        query = f"DELETE FROM {self.current_table} WHERE {primary_column} = %s"
-
-        try:
-            conn = psycopg2.connect(**self.db_config)
-            cursor = conn.cursor()
-            cursor.execute(query, (record_id,))
-            conn.commit()
-            conn.close()
-            self.load_table_data()  # Перезагрузка данных после удаления
-        except Exception as e:
-            print("Ошибка при удалении записи:", e)
-
+scene = Scene_1()
