@@ -11,6 +11,30 @@ CREATE TABLE customers (
     address TEXT
 );
 
+-- Таблица для сотрудников
+CREATE TABLE employees (
+    employee_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    position VARCHAR(100),
+    hire_date DATE,
+    salary NUMERIC(10, 2)
+);
+
+-- Таблица для поставщиков
+CREATE TABLE suppliers (
+    supplier_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    contact_name VARCHAR(100),
+    phone VARCHAR(20),
+    address TEXT
+);
+
+-- Таблица для категорий
+CREATE TABLE categories (
+    category_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
 -- Таблица для товаров
 CREATE TABLE products (
     product_id SERIAL PRIMARY KEY,
@@ -21,11 +45,7 @@ CREATE TABLE products (
     category_id INT REFERENCES categories(category_id)
 );
 
--- Таблица для категорий
-CREATE TABLE categories (
-    category_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
-);
+
 
 -- Таблица для заказов
 CREATE TABLE orders (
@@ -44,14 +64,7 @@ CREATE TABLE order_items (
     price NUMERIC(10, 2) NOT NULL
 );
 
--- Таблица для поставщиков
-CREATE TABLE suppliers (
-    supplier_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    contact_name VARCHAR(100),
-    phone VARCHAR(20),
-    address TEXT
-);
+
 
 -- Таблица для платежей
 CREATE TABLE payments (
@@ -62,14 +75,7 @@ CREATE TABLE payments (
     payment_method VARCHAR(50)
 );
 
--- Таблица для сотрудников
-CREATE TABLE employees (
-    employee_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    position VARCHAR(100),
-    hire_date DATE,
-    salary NUMERIC(10, 2)
-);
+
 "
 psql -U postgres -d trading_firm -c "\d
 INSERT INTO customers (name, email, phone, address) VALUES
