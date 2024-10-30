@@ -47,42 +47,38 @@ class Scene_1:
         # Параметры подключения
         self.db_name = "trading_firm"
         self.db_user = "postgres"
-        self.db_password = "1"
+        self.db_password = "postgres"
         self.db_host = "127.0.0.1"  # Базовое значение IP-адреса
 
         self.form1 = Form('Выбор таблицы', '600x600+400+200')
-        self.create_table_selector()
-        
-        # Инициализация списка записей
-        self.entries = []
-        self.load_data()
-        self.create_entries()
-
-        # Создание кнопок
-        self.but_1 = Button_1(self.form1, "Следующая запись", 50, 2, self.next_record)
-        self.but_2 = Button_1(self.form1, "Предыдущая запись", 50, 2, self.previous_record)
-        self.but_3 = Button_1(self.form1, "Добавить запись", 50, 2, self.add_record)
-        self.but_4 = Button_1(self.form1, "Удалить запись", 50, 2, self.delete_record)
-
+        self.create_interface()
         self.form1.root.mainloop()
 
-    def create_table_selector(self):
+    def create_interface(self):
+        # Очистка всех виджетов
+        for widget in self.form1.root.winfo_children():
+            widget.destroy()
+
+        # Создание выпадающего меню для выбора таблицы
         self.table_var = StringVar(self.form1.root)
         self.table_var.set(self.table)
         self.table_menu = OptionMenu(self.form1.root, self.table_var, *self.tables.keys(), command=self.change_table)
         self.table_menu.pack()
 
-    def create_entries(self):
-        # Очистка предыдущих записей
-        for entry in self.entries:
-            entry.lab_1.pack_forget()
-            entry.ent_1.pack_forget()
-        self.entries.clear()
-        
-        # Создание новых полей ввода для текущей таблицы
+        # Создание полей ввода для выбранной таблицы
+        self.entries = []
         for column_name in self.tables[self.table]:
             entry = Entry_1(self.form1, column_name + ":", "")
             self.entries.append(entry)
+
+        # Кнопки управления
+        self.but_1 = Button_1(self.form1, "Следующая запись", 50, 2, self.next_record)
+        self.but_2 = Button_1(self.form1, "Предыдущая запись", 50, 2, self.previous_record)
+        self.but_3 = Button_1(self.form1, "Добавить запись", 50, 2, self.add_record)
+        self.but_4 = Button_1(self.form1, "Удалить запись", 50, 2, self.delete_record)
+
+        # Загрузка данных для текущей таблицы
+        self.load_data()
 
     def load_data(self):
         conn = psycopg2.connect(database=self.db_name, user=self.db_user, password=self.db_password, host=self.db_host, port="5432")
@@ -97,8 +93,12 @@ class Scene_1:
         self.update_entries()
 
     def update_entries(self):
+        # Убедимся, что количество полей ввода соответствует количеству столбцов в строке данных
         for i, entry in enumerate(self.entries):
-            entry.set_1(self.rows[self.n][i])
+            if i < len(self.rows[self.n]):
+                entry.set_1(self.rows[self.n][i])
+            else:
+                entry.set_1("")
 
     def next_record(self):
         if self.n < len(self.rows) - 1:
@@ -135,9 +135,4 @@ class Scene_1:
 
     def change_table(self, selected_table):
         self.table = selected_table
-        self.load_data()
-        self.create_entries()
-
-# Установка IP-адреса базы данных
-db_host = "127.0.0.1"  # Базовый IP-адрес
-scene = Scene_1()
+        self.create_interface()  # Полностью перерисовываем интерфейс при смене таблицы
