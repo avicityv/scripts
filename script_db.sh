@@ -1,10 +1,7 @@
 export PGPASSWORD='postgres';
-psql -U postgres -c "-- Создание базы данных
-CREATE DATABASE torg_firm;
+psql -U postgres -c "CREATE DATABASE trading_firm;"
 
--- Подключение к базе данных
-\c torg_firm;
-
+psql -U postgres -d trading_firm -c "
 -- Таблица для клиентов
 CREATE TABLE customers (
     customer_id SERIAL PRIMARY KEY,
@@ -73,7 +70,8 @@ CREATE TABLE employees (
     hire_date DATE,
     salary NUMERIC(10, 2)
 );
--- Заполнение таблицы customers
+"
+psql -U postgres -d trading_firm -c "\d
 INSERT INTO customers (name, email, phone, address) VALUES
 ('Иван Иванов', 'ivan@example.com', '1234567890', 'г. Москва, ул. Пушкина, д. 1'),
 ('Светлана Петрова', 'svetlana@example.com', '0987654321', 'г. Санкт-Петербург, ул. Ленина, д. 2'),
@@ -136,5 +134,5 @@ INSERT INTO employees (name, position, hire_date, salary) VALUES
 ('Анна Мартынова', 'Бухгалтер', '2021-08-30', 50000.00),
 ('Максим Сидоров', 'Логист', '2020-11-05', 55000.00),
 ('Екатерина Тихонова', 'Маркетолог', '2019-03-10', 65000.00);
+\dd
 "
-psql -U postgres -d mydatabase -c "\d"
