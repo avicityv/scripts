@@ -23,12 +23,6 @@ class Entry_1:
     def get(self):
         return self.ent_1.get()
 
-class Button_1:
-    def __init__(self, form, text_b, width_b, height_b, command_b):
-        self.b1 = Button(form.root, text=text_b, width=width_b, height=height_b)
-        self.b1.config(command=command_b)
-        self.b1.pack()
-
 class Scene_1:
     def __init__(self):
         self.n = 0
@@ -52,12 +46,16 @@ class Scene_1:
 
         self.form1 = Form('Выбор таблицы', '600x600+400+200')
         self.create_interface()
+
+        # Кнопки создаются один раз при инициализации
+        self.create_buttons()
         self.form1.root.mainloop()
 
     def create_interface(self):
-        # Очистка всех виджетов
-        for widget in self.form1.root.winfo_children():
-            widget.destroy()
+        # Очистка всех виджетов полей ввода
+        for widget in self.form1.root.pack_slaves():
+            if widget.winfo_class() == "Label" or widget.winfo_class() == "Entry":
+                widget.pack_forget()
 
         # Создание выпадающего меню для выбора таблицы
         self.table_var = StringVar(self.form1.root)
@@ -71,14 +69,15 @@ class Scene_1:
             entry = Entry_1(self.form1, column_name + ":", "")
             self.entries.append(entry)
 
-        # Кнопки управления
-        self.but_1 = Button_1(self.form1, "Следующая запись", 50, 2, self.next_record)
-        self.but_2 = Button_1(self.form1, "Предыдущая запись", 50, 2, self.previous_record)
-        self.but_3 = Button_1(self.form1, "Добавить запись", 50, 2, self.add_record)
-        self.but_4 = Button_1(self.form1, "Удалить запись", 50, 2, self.delete_record)
-
         # Загрузка данных для текущей таблицы
         self.load_data()
+
+    def create_buttons(self):
+        # Создание кнопок управления (они создаются только один раз)
+        Button(self.form1.root, text="Следующая запись", width=20, height=2, command=self.next_record).pack()
+        Button(self.form1.root, text="Предыдущая запись", width=20, height=2, command=self.previous_record).pack()
+        Button(self.form1.root, text="Добавить запись", width=20, height=2, command=self.add_record).pack()
+        Button(self.form1.root, text="Удалить запись", width=20, height=2, command=self.delete_record).pack()
 
     def load_data(self):
         conn = psycopg2.connect(database=self.db_name, user=self.db_user, password=self.db_password, host=self.db_host, port="5432")
@@ -135,4 +134,4 @@ class Scene_1:
 
     def change_table(self, selected_table):
         self.table = selected_table
-        self.create_interface()  # Полностью перерисовываем интерфейс при смене таблицы
+        self.create_interface()  # Обновляем интерфейс при смене таблицы
