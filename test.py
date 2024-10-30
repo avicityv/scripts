@@ -44,8 +44,15 @@ class Scene_1:
             "payments": ["payment_id", "order_id", "payment_date", "amount", "payment_method"]
         }
 
+        # Параметры подключения
+        self.db_name = "trading_firm"
+        self.db_user = "postgres"
+        self.db_password = "postgres"
+        self.db_host = "127.0.0.1"  # Базовое значение IP-адреса
+
         self.form1 = Form('Выбор таблицы', '600x600+400+200')
         self.create_table_selector()
+        self.entries = []  # Инициализация self.entries перед вызовом load_data
         self.load_data()
         self.create_entries()
         self.form1.root.mainloop()
@@ -57,7 +64,12 @@ class Scene_1:
         self.table_menu.pack()
 
     def create_entries(self):
-        self.entries = []
+        # Очистка предыдущих записей
+        for entry in self.entries:
+            entry.lab_1.pack_forget()
+            entry.ent_1.pack_forget()
+        self.entries.clear()
+        
         for column_name in self.tables[self.table]:
             entry = Entry_1(self.form1, column_name + ":", "")
             self.entries.append(entry)
@@ -68,7 +80,7 @@ class Scene_1:
         self.but_4 = Button_1(self.form1, "Удалить запись", 50, 2, self.delete_record)
 
     def load_data(self):
-        conn = psycopg2.connect(database="torg_firm", user="postgres", password="postgres", host="10.1.66.19", port="5432")
+        conn = psycopg2.connect(database=self.db_name, user=self.db_user, password=self.db_password, host=self.db_host, port="5432")
         cur = conn.cursor()
         cur.execute(f'SELECT * FROM {self.table};')
         self.rows = cur.fetchall()
@@ -96,7 +108,7 @@ class Scene_1:
     def add_record(self):
         new_data = tuple(entry.get() for entry in self.entries)
         
-        conn = psycopg2.connect(database="torg_firm", user="postgres", password="postgres", host="10.1.66.19", port="5432")
+        conn = psycopg2.connect(database=self.db_name, user=self.db_user, password=self.db_password, host=self.db_host, port="5432")
         cur = conn.cursor()
         cur.execute(f'INSERT INTO {self.table} VALUES (DEFAULT, {", ".join(["%s"] * len(new_data))});', new_data)
         conn.commit()
@@ -107,7 +119,7 @@ class Scene_1:
     def delete_record(self):
         id_to_delete = self.entries[0].get()
         
-        conn = psycopg2.connect(database="torg_firm", user="postgres", password="postgres", host="10.1.66.19", port="5432")
+        conn = psycopg2.connect(database=self.db_name, user=self.db_user, password=self.db_password, host=self.db_host, port="5432")
         cur = conn.cursor()
         cur.execute(f'DELETE FROM {self.table} WHERE {self.tables[self.table][0]}=%s;', (id_to_delete,))
         conn.commit()
@@ -118,11 +130,9 @@ class Scene_1:
 
     def change_table(self, selected_table):
         self.table = selected_table
-        for entry in self.entries:
-            entry.lab_1.pack_forget()
-            entry.ent_1.pack_forget()
-        self.entries.clear()
         self.load_data()
         self.create_entries()
 
+# Установка IP-адреса базы данных
+db_host = "127.0.0.1"  # Базовый IP-адрес
 scene = Scene_1()
