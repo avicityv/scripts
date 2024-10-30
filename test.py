@@ -47,14 +47,23 @@ class Scene_1:
         # Параметры подключения
         self.db_name = "trading_firm"
         self.db_user = "postgres"
-        self.db_password = "postgres"
+        self.db_password = "1"
         self.db_host = "127.0.0.1"  # Базовое значение IP-адреса
 
         self.form1 = Form('Выбор таблицы', '600x600+400+200')
         self.create_table_selector()
-        self.entries = []  # Инициализация self.entries перед вызовом load_data
+        
+        # Инициализация списка записей
+        self.entries = []
         self.load_data()
         self.create_entries()
+
+        # Создание кнопок
+        self.but_1 = Button_1(self.form1, "Следующая запись", 50, 2, self.next_record)
+        self.but_2 = Button_1(self.form1, "Предыдущая запись", 50, 2, self.previous_record)
+        self.but_3 = Button_1(self.form1, "Добавить запись", 50, 2, self.add_record)
+        self.but_4 = Button_1(self.form1, "Удалить запись", 50, 2, self.delete_record)
+
         self.form1.root.mainloop()
 
     def create_table_selector(self):
@@ -70,14 +79,10 @@ class Scene_1:
             entry.ent_1.pack_forget()
         self.entries.clear()
         
+        # Создание новых полей ввода для текущей таблицы
         for column_name in self.tables[self.table]:
             entry = Entry_1(self.form1, column_name + ":", "")
             self.entries.append(entry)
-        
-        self.but_1 = Button_1(self.form1, "Следующая запись", 50, 2, self.next_record)
-        self.but_2 = Button_1(self.form1, "Предыдущая запись", 50, 2, self.previous_record)
-        self.but_3 = Button_1(self.form1, "Добавить запись", 50, 2, self.add_record)
-        self.but_4 = Button_1(self.form1, "Удалить запись", 50, 2, self.delete_record)
 
     def load_data(self):
         conn = psycopg2.connect(database=self.db_name, user=self.db_user, password=self.db_password, host=self.db_host, port="5432")
