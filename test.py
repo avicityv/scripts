@@ -109,7 +109,7 @@ class Scene_1:
         # Удаление текущей записи из таблицы
         id_to_delete = self.entries[0].get()  # Предполагаем, что первый entry — это ID
         
-         conn = psycopg2.connect(database="trading_firm", user="postgres", password="1", host="127.0.0.1", port="5432")
+        conn = psycopg2.connect(database="trading_firm", user="postgres", password="1", host="127.0.0.1", port="5432")
         cur = conn.cursor()
         cur.execute(f'DELETE FROM "{self.selected_table}" WHERE id=%s;', (id_to_delete,))
         conn.commit()
