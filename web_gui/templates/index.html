@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web App</title>
+    <script>
+        async function loadData() {
+            const table = document.getElementById("tableSelect").value;
+            const response = await fetch('/load_data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ table })
+            });
+            const data = await response.json();
+            console.log(data); // Обработка данных для отображения
+        }
+
+        async function addRecord() {
+            const table = document.getElementById("tableSelect").value;
+            const data = [...document.querySelectorAll(".entry")].map(entry => entry.value);
+            await fetch('/add_record', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ table, data })
+            });
+            loadData();
+        }
+
+        async function deleteRecord() {
+            const table = document.getElementById("tableSelect").value;
+            const id = document.getElementById("recordId").value;
+            await fetch('/delete_record', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ table, id })
+            });
+            loadData();
+        }
+    </script>
+</head>
+<body>
+    <h1>Форма для работы с таблицами</h1>
+    <label>Выберите таблицу:</label>
+    <input type="text" id="tableSelect" value="поставщики">
+    <button onclick="loadData()">Загрузить данные</button>
+
+    <h2>Данные</h2>
+    <div id="dataDisplay">Данные будут отображаться здесь</div>
+
+    <h2>Добавление записи</h2>
+    <input class="entry" type="text" placeholder="Поле 1">
+    <input class="entry" type="text" placeholder="Поле 2">
+    <button onclick="addRecord()">Добавить запись</button>
+
+    <h2>Удаление записи</h2>
+    <label>ID записи:</label>
+    <input type="text" id="recordId">
+    <button onclick="deleteRecord()">Удалить запись</button>
+</body>
+</html>
