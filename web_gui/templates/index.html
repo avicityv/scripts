@@ -5,29 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web App</title>
     <script>
-    async function loadData() {
-        const table = document.getElementById("tableSelect").value;
-        const response = await fetch('/load_data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ table })
-        });
-        
-        const data = await response.json();
-
-        // Проверка на наличие dataDisplay перед вставкой данных
-        const dataDisplay = document.getElementById("dataDisplay");
-        if (!dataDisplay) {
-            console.error("Element 'dataDisplay' not found in HTML.");
-            return;
+        async function loadData() {
+            const table = document.getElementById("tableSelect").value;
+            const response = await fetch('/load_data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ table })
+            });
+            const data = await response.json();
+            console.log(data); // Обработка данных для отображения
         }
-
-        // Очищаем предыдущее содержимое
-        dataDisplay.innerHTML = '';
-
-        // Преобразуем JSON данные в строку и выводим на страницу
-        dataDisplay.innerText = JSON.stringify(data, null, 2);
-    }
 
         async function addRecord() {
             const table = document.getElementById("tableSelect").value;
@@ -40,88 +27,26 @@
             loadData();
         }
 
- async function deleteRecord() {
-        const table = document.getElementById("tableSelect").value;
-        const id = document.getElementById("recordId").value;
-
-        if (!id) {
-            alert("Введите ID записи для удаления.");
-            return;
-        }
-
-        const response = await fetch('/delete_record', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ table, id })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            alert("Запись успешно удалена");
-            loadData();  // Обновляем отображение данных
-        } else {
-            alert("Не удалось удалить запись. Проверьте ID.");
-        }
-    }
-
-         async function loadData() {
+        async function deleteRecord() {
             const table = document.getElementById("tableSelect").value;
-            const response = await fetch('/load_data', {
+            const id = document.getElementById("recordId").value;
+            await fetch('/delete_record', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ table })
-        });
-        
-        const data = await response.json();
-
-        // Очистим div перед добавлением новых данных
-        const dataDisplay = document.getElementById("dataDisplay");
-        dataDisplay.innerHTML = '';
-
-        // Проверяем, есть ли данные
-        if (data.length === 0) {
-            dataDisplay.innerHTML = '<p>Нет данных для отображения.</p>';
-            return;
-        }
-
-        // Формируем таблицу для отображения данных
-        const tableElement = document.createElement('table');
-        tableElement.border = '1';
-
-        // Создаем заголовок таблицы на основе первой строки данных
-        const headerRow = document.createElement('tr');
-        data[0].forEach((_, index) => {
-            const headerCell = document.createElement('th');
-            headerCell.innerText = `Поле ${index + 1}`;
-            headerRow.appendChild(headerCell);
-        });
-        tableElement.appendChild(headerRow);
-
-        // Добавляем строки данных
-        data.forEach(row => {
-            const rowElement = document.createElement('tr');
-            row.forEach(cellData => {
-                const cell = document.createElement('td');
-                cell.innerText = cellData;
-                rowElement.appendChild(cell);
+                body: JSON.stringify({ table, id })
             });
-            tableElement.appendChild(rowElement);
-        });
-
-        dataDisplay.appendChild(tableElement);
-    }
-        
+            loadData();
+        }
     </script>
 </head>
 <body>
     <h1>Форма для работы с таблицами</h1>
     <label>Выберите таблицу:</label>
     <input type="text" id="tableSelect" value="поставщики">
-    <button onclick="dataDisplay ()">Загрузить данные</button>
+    <button onclick="loadData()">Загрузить данные</button>
 
     <h2>Данные</h2>
-    <div id="loadData">Данные будут отображаться здесь</div>
+    <div id="dataDisplay">Данные будут отображаться здесь</div>
 
     <h2>Добавление записи</h2>
     <input class="entry" type="text" placeholder="Поле 1">
