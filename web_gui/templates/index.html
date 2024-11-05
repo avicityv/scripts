@@ -37,6 +37,54 @@
             });
             loadData();
         }
+
+         async function loadData() {
+            const table = document.getElementById("tableSelect").value;
+            const response = await fetch('/load_data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ table })
+        });
+        
+        const data = await response.json();
+
+        // Очистим div перед добавлением новых данных
+        const dataDisplay = document.getElementById("dataDisplay");
+        dataDisplay.innerHTML = '';
+
+        // Проверяем, есть ли данные
+        if (data.length === 0) {
+            dataDisplay.innerHTML = '<p>Нет данных для отображения.</p>';
+            return;
+        }
+
+        // Формируем таблицу для отображения данных
+        const tableElement = document.createElement('table');
+        tableElement.border = '1';
+
+        // Создаем заголовок таблицы на основе первой строки данных
+        const headerRow = document.createElement('tr');
+        data[0].forEach((_, index) => {
+            const headerCell = document.createElement('th');
+            headerCell.innerText = `Поле ${index + 1}`;
+            headerRow.appendChild(headerCell);
+        });
+        tableElement.appendChild(headerRow);
+
+        // Добавляем строки данных
+        data.forEach(row => {
+            const rowElement = document.createElement('tr');
+            row.forEach(cellData => {
+                const cell = document.createElement('td');
+                cell.innerText = cellData;
+                rowElement.appendChild(cell);
+            });
+            tableElement.appendChild(rowElement);
+        });
+
+        dataDisplay.appendChild(tableElement);
+    }
+        
     </script>
 </head>
 <body>
@@ -46,7 +94,7 @@
     <button onclick="loadData()">Загрузить данные</button>
 
     <h2>Данные</h2>
-    <div id="dataDisplay">Данные будут отображаться здесь</div>
+    <div id="loadData">Данные будут отображаться здесь</div>
 
     <h2>Добавление записи</h2>
     <input class="entry" type="text" placeholder="Поле 1">
