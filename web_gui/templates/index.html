@@ -27,16 +27,30 @@
             loadData();
         }
 
-        async function deleteRecord() {
-            const table = document.getElementById("tableSelect").value;
-            const id = document.getElementById("recordId").value;
-            await fetch('/delete_record', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ table, id })
-            });
-            loadData();
+ async function deleteRecord() {
+        const table = document.getElementById("tableSelect").value;
+        const id = document.getElementById("recordId").value;
+
+        if (!id) {
+            alert("Введите ID записи для удаления.");
+            return;
         }
+
+        const response = await fetch('/delete_record', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ table, id })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert("Запись успешно удалена");
+            loadData();  // Обновляем отображение данных
+        } else {
+            alert("Не удалось удалить запись. Проверьте ID.");
+        }
+    }
 
          async function loadData() {
             const table = document.getElementById("tableSelect").value;
