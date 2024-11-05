@@ -41,12 +41,15 @@ def add_record():
 @app.route('/delete_record', methods=['POST'])
 def delete_record():
     table = request.json.get('table')
-    record_id = request.json.get('id')
+    record_id = request.json.get('id')  # получаем ID записи из запроса
+
     with db_connect() as conn:
         with conn.cursor() as cur:
+            # Попробуем удалить запись с нужным ID
             cur.execute(f'DELETE FROM "{table}" WHERE id = %s', (record_id,))
             conn.commit()
     return jsonify(success=True)
+
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
