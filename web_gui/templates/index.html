@@ -13,7 +13,42 @@
                 body: JSON.stringify({ table })
             });
             const data = await response.json();
-            console.log(data); // Обработка данных для отображения
+            displayData(data); // Отображение данных на странице
+        }
+
+        function displayData(data) {
+            const dataDisplay = document.getElementById("dataDisplay");
+            dataDisplay.innerHTML = ''; // Очистка предыдущих данных
+
+            if (data.length === 0) {
+                dataDisplay.innerHTML = '<p>Нет данных для отображения.</p>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.border = '1';
+
+            // Создание заголовков таблицы
+            const headerRow = document.createElement('tr');
+            Object.keys(data[0]).forEach(key => {
+                const th = document.createElement('th');
+                th.textContent = key;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+
+            // Создание строк данных
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                Object.values(row).forEach(value => {
+                    const td = document.createElement('td');
+                    td.textContent = value;
+                    tr.appendChild(td);
+                });
+                table.appendChild(tr);
+            });
+
+            dataDisplay.appendChild(table);
         }
 
         async function addRecord() {
