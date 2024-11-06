@@ -4,9 +4,9 @@ import psycopg2
 app = Flask(__name__)
 
 DATABASE = {
-    'dbname': 'torg_firm',
+    'dbname': 'trading_firm',
     'user': 'postgres',
-    'password': 'postgres',
+    'password': '1',
     'host': '127.0.0.1',
     'port': '5432'
 }
@@ -25,7 +25,8 @@ def load_data():
         with conn.cursor() as cur:
             cur.execute(f'SELECT * FROM "{table}"')
             rows = cur.fetchall()
-    return jsonify(rows)
+            columns = [desc[0] for desc in cur.description]
+    return jsonify({'rows': rows, 'columns': columns})
 
 @app.route('/add_record', methods=['POST'])
 def add_record():
@@ -41,15 +42,17 @@ def add_record():
 @app.route('/delete_record', methods=['POST'])
 def delete_record():
     table = request.json.get('table')
-    record_id = request.json.get('id')  # получаем ID записи из запроса
-
+    record_id = request.json.get('id')
     with db_connect() as conn:
         with conn.cursor() as cur:
-            # Попробуем удалить запись с нужным ID
-            cur.execute(f'DELETE FROM "{table}" WHERE id = %s', (record_id,))
+            cur.execute(f'SELECT * FROM "{table}" LIMIT 0')
+            columns = [desc[0] for desc in cur.description]
+            id_column = columns[0]
+            cur.execute(f'DELETE FROM "{table}" WHERE "{id_column}" = %s', (record_id,))
             conn.commit()
+            if cur.rowcount == 0:
+                return jsonify(success=False, message="Record not found"), 404
     return jsonify(success=True)
-
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
