@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web App</title>
     <script>
+        let columns = [];
+
         async function loadData() {
             const table = document.getElementById("tableSelect").value;
             const response = await fetch('/load_data', {
@@ -13,7 +15,9 @@
                 body: JSON.stringify({ table })
             });
             const data = await response.json();
-            displayData(data); // Отображение данных на странице
+            columns = data.columns;
+            displayData(data.rows);
+            displayColumns(data.columns);
         }
 
         function displayData(data) {
@@ -30,9 +34,9 @@
 
             // Создание заголовков таблицы
             const headerRow = document.createElement('tr');
-            Object.keys(data[0]).forEach(key => {
+            columns.forEach(column => {
                 const th = document.createElement('th');
-                th.textContent = key;
+                th.textContent = column;
                 headerRow.appendChild(th);
             });
             table.appendChild(headerRow);
@@ -40,9 +44,12 @@
             // Создание строк данных
             data.forEach(row => {
                 const tr = document.createElement('tr');
-                Object.values(row).forEach(value => {
+                row.forEach((value, index) => {
                     const td = document.createElement('td');
                     td.textContent = value;
+                    if (index === 0) {
+                        td.style.fontWeight = 'bold'; // Выделение первого столбца (ID)
+                    }
                     tr.appendChild(td);
                 });
                 table.appendChild(tr);
@@ -51,26 +58,54 @@
             dataDisplay.appendChild(table);
         }
 
+        function displayColumns(columns) {
+            const addRecordSection = document.getElementById("addRecordSection");
+            addRecordSection.innerHTML = ''; // Очистка предыдущих полей
+
+            columns.forEach(column => {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'entry';
+                input.placeholder = column;
+                addRecordSection.appendChild(input);
+            });
+
+            const addButton = document.createElement('button');
+            addButton.textContent = 'Добавить запись';
+            addButton.onclick = addRecord;
+            addRecordSection.appendChild(addButton);
+        }
+
         async function addRecord() {
             const table = document.getElementById("tableSelect").value;
             const data = [...document.querySelectorAll(".entry")].map(entry => entry.value);
-            await fetch('/add_record', {
+            const response = await fetch('/add_record', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ table, data })
             });
-            loadData();
+            const result = await response.json();
+            if (result.success) {
+                loadData();
+            } else {
+                alert('Ошибка при добавлении записи');
+            }
         }
 
         async function deleteRecord() {
             const table = document.getElementById("tableSelect").value;
             const id = document.getElementById("recordId").value;
-            await fetch('/delete_record', {
+            const response = await fetch('/delete_record', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ table, id })
             });
-            loadData();
+            const result = await response.json();
+            if (result.success) {
+                loadData();
+            } else {
+                alert(result.message);
+            }
         }
     </script>
 </head>
@@ -84,9 +119,7 @@
     <div id="dataDisplay">Данные будут отображаться здесь</div>
 
     <h2>Добавление записи</h2>
-    <input class="entry" type="text" placeholder="Поле 1">
-    <input class="entry" type="text" placeholder="Поле 2">
-    <button onclick="addRecord()">Добавить запись</button>
+    <div id="addRecordSection"></div>
 
     <h2>Удаление записи</h2>
     <label>ID записи:</label>
