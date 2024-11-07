@@ -24,6 +24,12 @@
 Edit user, PGPASSWORD and dbname if need.
 
 # script-gui-postgres
-<br>Script for college classes.</br>
+<br>App for college classes. View db content, watch DB tables and values</br>
+Todo: fix deleting values by key 
 
+# web_gui
+Repo for web application that listening local psql db. 
+dependences: flask, jsonify, psycopg2
+!Prefer to up in venv!
+Todo: make venv abd requirements.txt
 
