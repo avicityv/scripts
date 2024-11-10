@@ -31,7 +31,6 @@ Todo: fix deleting values by key
 Repo for web application that listening local psql db. 
 <h3>python -m venv venv</h3>
 <h3>source /venv/bin/activate</h3>
-<h3></h3>pip install requirements.txt</h3>
-!Prefer to up in venv!
+<h3>pip install requirements.txt</h3>
 
 
