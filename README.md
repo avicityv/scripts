@@ -29,7 +29,9 @@ Todo: fix deleting values by key
 
 # web_gui
 Repo for web application that listening local psql db. 
-dependences: flask, jsonify, psycopg2
+<h3>python -m venv venv</h3>
+<h3>source /venv/bin/activate</h3>
+<h3></h3>pip install requirements.txt</h3>
 !Prefer to up in venv!
-Todo: make venv abd requirements.txt
+
 
